@@ -1,3 +1,5 @@
-# EarlyRead Quest
+# EarlyRead Quest Frontend
 
-Web-based game that detects early signs of dyslexia
+- Frontend Framework: NextJS
+- CSS Framework: TailwindCSS
+- UI Component: ArkUI
