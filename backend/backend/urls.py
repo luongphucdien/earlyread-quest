@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from quest_read_app import views as quest_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('sessions/start', quest_views.start_session),
+    path('rounds/<uuid:round_id>', quest_views.get_round),
+    path('events', quest_views.log_event),
+    path('sessions/<uuid:session_id>/finish', quest_views.finish_session),
 ]
