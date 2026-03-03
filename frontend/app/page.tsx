@@ -1,138 +1,67 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { ChildSummaryScreen } from "@/components/screens/ChildSummaryScreen"
-import { InstructionsScreen } from "@/components/screens/InstructionsScreen"
-import { ParentReportScreen } from "@/components/screens/ParentReportScreen"
-import { RoundScreen } from "@/components/screens/RoundScreen"
-import { WelcomeScreen } from "@/components/screens/WelcomeScreen"
-import { finishSession, getRound, logEvent, startSession } from "@/lib/api"
-import type { AppScreen, FinishResponse, RoundResponse, TaskComponent } from "@/lib/types"
-
-type SessionState = {
-    sessionId: string
-    currentRoundId: string
-}
-
-const COMPONENT_TO_CORRECT_KEY: Record<TaskComponent, keyof RoundResponse["challenges"]> = {
-    image_color: "image_color",
-    scramble: "scramble",
-    audio_mismatch: "audio_mismatch",
-}
+import { Button, Card, RadioGroup } from "@/components"
+import { useState } from "react"
 
 export default function Page() {
-    const [screen, setScreen] = useState<AppScreen>("welcome")
-    const [ageBand, setAgeBand] = useState("6-7")
-    const [session, setSession] = useState<SessionState | null>(null)
-    const [round, setRound] = useState<RoundResponse | null>(null)
-    const [finishData, setFinishData] = useState<FinishResponse | null>(null)
-    const [error, setError] = useState<string | null>(null)
-    const [isStarting, setIsStarting] = useState(false)
+    const AGE_BANDS = ["4-5", "6-7", "8-9", "10-11"]
 
-    const canRenderRound = useMemo(
-        () => screen === "round" && !!round && !!session,
-        [screen, round, session],
+    const [age, setAge] = useState<string>("")
+    const [ready, setReady] = useState<boolean>(false)
+
+    const handleSelectAge = (age: string) => {
+        setAge(age)
+        setReady(true)
+    }
+
+    const onStart = () => {}
+
+    return (
+        <>
+            <Card.Root>
+                <Card.Title>EarlyRead Quest</Card.Title>
+                <Card.Subtitle>
+                    A short learning adventure to help spot reading strengths
+                </Card.Subtitle>
+                <Card.Body>
+                    <div className="space-y-6">
+                        <p className="rounded-2xl bg-(--surface-muted) p-4 text-slate-700">
+                            Choose an age band, then start the session. Your
+                            child will play a few quick challenges with friendly
+                            feedback.
+                        </p>
+
+                        <RadioGroup.Root
+                            className="grid grid-cols-2 gap-3 md:grid-cols-4"
+                            defaultValue={""}
+                            onValueChange={(e) =>
+                                handleSelectAge(e.value ?? "")
+                            }
+                        >
+                            <RadioGroup.Label className="col-span-full">
+                                Child age band
+                            </RadioGroup.Label>
+
+                            {AGE_BANDS.map((band) => (
+                                <RadioGroup.Item key={band} value={band}>
+                                    <RadioGroup.ItemText>
+                                        {band}
+                                    </RadioGroup.ItemText>
+                                    <RadioGroup.ItemHiddenInput />
+                                </RadioGroup.Item>
+                            ))}
+                        </RadioGroup.Root>
+                        {/* {error ? (
+                            <p className="rounded-xl bg-red-50 p-3 text-sm text-[var(--danger)]">
+                                {error}
+                            </p>
+                        ) : null} */}
+                        <Button.Root onClick={onStart} disabled={!ready}>
+                            Let&apos;s Start!
+                        </Button.Root>
+                    </div>
+                </Card.Body>
+            </Card.Root>
+        </>
     )
-
-    async function handleStartSession() {
-        setIsStarting(true)
-        setError(null)
-        try {
-            const started = await startSession(ageBand)
-            const roundData = await getRound(started.first_round_id)
-            setSession({
-                sessionId: started.session_id,
-                currentRoundId: started.first_round_id,
-            })
-            setRound(roundData)
-            setScreen("instructions")
-        } catch (startError) {
-            setError(
-                startError instanceof Error
-                    ? startError.message
-                    : "Could not start session.",
-            )
-        } finally {
-            setIsStarting(false)
-        }
-    }
-
-    async function handleChallengeSubmit(
-        component: TaskComponent,
-        selected: string,
-        latencyMs: number,
-        extra?: Record<string, unknown>,
-    ) {
-        if (!session || !round) {
-            return
-        }
-
-        const challenge = round.challenges[COMPONENT_TO_CORRECT_KEY[component]]
-        const correct = challenge.correctAnswer
-        const isCorrect = selected === correct
-
-        await logEvent({
-            session_id: session.sessionId,
-            round_id: round.round_id,
-            task_component: component,
-            selected,
-            correct,
-            is_correct: isCorrect,
-            latency_ms: latencyMs,
-            attempt_number: 1,
-            extra,
-        })
-
-        if (component !== "audio_mismatch") {
-            return
-        }
-
-        if (round.next_round_id) {
-            const nextRound = await getRound(round.next_round_id)
-            setRound(nextRound)
-            setSession((previous) =>
-                previous
-                    ? { ...previous, currentRoundId: round.next_round_id as string }
-                    : previous,
-            )
-            return
-        }
-
-        const finished = await finishSession(session.sessionId)
-        setFinishData(finished)
-        setScreen("child-summary")
-    }
-
-    if (screen === "welcome") {
-        return (
-            <WelcomeScreen
-                ageBand={ageBand}
-                isStarting={isStarting}
-                error={error}
-                onAgeBandChange={setAgeBand}
-                onStart={handleStartSession}
-            />
-        )
-    }
-
-    if (screen === "instructions") {
-        return <InstructionsScreen onBegin={() => setScreen("round")} />
-    }
-
-    if (canRenderRound && round) {
-        return (
-            <RoundScreen round={round} onChallengeSubmit={handleChallengeSubmit} />
-        )
-    }
-
-    if (screen === "child-summary") {
-        return (
-            <ChildSummaryScreen
-                summary={finishData}
-                onContinue={() => setScreen("parent-report")}
-            />
-        )
-    }
-
-    return <ParentReportScreen summary={finishData} />
 }

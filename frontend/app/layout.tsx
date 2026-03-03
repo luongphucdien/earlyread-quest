@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import "../components/style"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -27,7 +28,9 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                {children}
+                <div className="mx-auto grid min-h-screen w-full max-w-3xl place-items-center">
+                    {children}
+                </div>
             </body>
         </html>
     )

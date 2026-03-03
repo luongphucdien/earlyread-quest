@@ -1,8 +1,57 @@
 @import "tailwindcss";
 
 :root {
-    --background: #f7fbff;
-    --foreground: #1f2a37;
+    /* https://lospec.com/palette-list/mulfok32 */
+    --color-mulfok32-1: #5ba675;
+    --color-mulfok32-2: #6bc96c;
+    --color-mulfok32-3: #abdd64;
+    --color-mulfok32-4: #fcef8d;
+    --color-mulfok32-5: #ffb879;
+
+    --color-mulfok32-6: #ea6262;
+    --color-mulfok32-7: #cc425e;
+    --color-mulfok32-8: #a32858;
+    --color-mulfok32-9: #751756;
+    --color-mulfok32-10: #390947;
+
+    --color-mulfok32-11: #611851;
+    --color-mulfok32-12: #873555;
+    --color-mulfok32-13: #a6555f;
+    --color-mulfok32-14: #c97373;
+    --color-mulfok32-15: #f2ae99;
+
+    --color-mulfok32-16: #ffc3f2;
+    --color-mulfok32-17: #ee8fcb;
+    --color-mulfok32-18: #d46eb3;
+    --color-mulfok32-19: #873e84;
+    --color-mulfok32-20: #1f102a;
+
+    --color-mulfok32-21: #4a3052;
+    --color-mulfok32-22: #7b5480;
+    --color-mulfok32-23: #a6859f;
+    --color-mulfok32-24: #d9bdc8;
+    --color-mulfok32-25: #ffffff; /* OG White */
+
+    --color-mulfok32-26: #aee2ff;
+    --color-mulfok32-27: #8db7ff;
+    --color-mulfok32-28: #6d80fa;
+    --color-mulfok32-29: #8465ec;
+    --color-mulfok32-30: #834dc4;
+
+    --color-mulfok32-31: #7d2da0;
+    --color-mulfok32-32: #4e187c;
+}
+
+@theme {
+    --text-h1: 2.986rem;
+    --text-h2: 2.488rem;
+    --text-h3: 2.074rem;
+    --text-h4: 1.728rem;
+    --text-h5: 1.44rem;
+    --text-h6: 1.2rem;
+
+    --black: #1f2a37;
+    --white: #f7fbff;
     --surface: #ffffff;
     --surface-muted: #eef5ff;
     --primary: #2f80ed;
@@ -10,11 +59,16 @@
     --success: #2e9f61;
     --warning: #d38700;
     --danger: #d64545;
+
+    --default-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    --default-transition-duration: 150ms;
 }
 
 @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
+    --color-background: var(--white);
+    --color-foreground: var(--black);
+    --color-surface: var(--surface);
+
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
 }
@@ -28,4 +82,55 @@ body {
 
 * {
     box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    line-height: var(--line-height);
+    font-weight: var(--font-weight-bold);
+}
+
+p {
+    line-height: var(--line-height);
+}
+
+h1 {
+    font-size: var(--text-h1);
+}
+
+h2 {
+    font-size: var(--text-h2);
+}
+
+h3 {
+    font-size: var(--text-h3);
+}
+
+h4 {
+    font-size: var(--text-h4);
+}
+
+h5 {
+    font-size: var(--text-h5);
+}
+
+h6 {
+    font-size: var(--text-h6);
+}
+
+small {
+    font-size: 0.833rem;
+}
+
+.card-container {
+    width: var(--breakpoint-xl);
+    height: var(--breakpoint-sm);
+    background-color: var(--surface);
+    box-shadow: var(--shadow-2xl);
+    border-radius: var(--radius-4xl);
+    padding: calc(var(--spacing) * 16);
 }

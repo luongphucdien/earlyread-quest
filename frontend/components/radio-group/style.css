@@ -1,0 +1,40 @@
+[data-scope="radio-group"] {
+    &[data-part="root"] {
+        font-weight: bold;
+    }
+
+    &[data-part="label"] {
+        margin-bottom: calc(var(--spacing) * 2);
+        display: block;
+        font-size: var(--text-sm);
+    }
+
+    &[data-part="item"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 48px;
+        width: 100%;
+        border-radius: var(--radius-xl);
+        padding: calc(var(--spacing) * 3);
+        color: var(--color-foreground);
+        outline: 2px solid var(--color-slate-200);
+
+        transition-property: color, background-color, outline-color;
+        transition-timing-function: var(--default-transition-duration);
+        transition-duration: var(--default-transition-duration);
+
+        &:hover {
+            outline-color: var(--primary);
+        }
+
+        &[data-state="checked"] {
+            background-color: var(--primary);
+            color: var(--white);
+            outline-color: var(--primary);
+        }
+    }
+
+    &[data-part="item-text"] {
+    }
+}

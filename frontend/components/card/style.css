@@ -1,0 +1,26 @@
+[data-scope="card"] {
+    &[data-part="root"] {
+        width: 100%;
+        border-radius: var(--radius-3xl);
+        background: var(--surface);
+        padding: calc(var(--spacing) * 6);
+        box-shadow: 0 20px 60px oklch(0.6 0.2 257 / 12%);
+    }
+
+    &[data-part="title"] {
+        color: var(--primary-strong);
+        font-size: var(--text-h1);
+
+        @media (width >= 48rem) {
+            font-size: var(--text-h2);
+        }
+    }
+
+    &[data-part="subtitle"] {
+        color: var(--color-slate-600);
+
+        @media (width >= 48rem) {
+            font-size: var(--text-lg);
+        }
+    }
+}
