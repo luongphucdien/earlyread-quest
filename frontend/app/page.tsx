@@ -1,6 +1,7 @@
 "use client"
 
 import { Button, Card, RadioGroup } from "@/components"
+import Link from "next/link"
 import { useState } from "react"
 
 export default function Page() {
@@ -14,7 +15,9 @@ export default function Page() {
         setReady(true)
     }
 
-    const onStart = () => {}
+    const onNext = () => {
+        window.localStorage.setItem("earlyread_quest_age", age)
+    }
 
     return (
         <>
@@ -51,14 +54,11 @@ export default function Page() {
                                 </RadioGroup.Item>
                             ))}
                         </RadioGroup.Root>
-                        {/* {error ? (
-                            <p className="rounded-xl bg-red-50 p-3 text-sm text-[var(--danger)]">
-                                {error}
-                            </p>
-                        ) : null} */}
-                        <Button.Root onClick={onStart} disabled={!ready}>
-                            Let&apos;s Start!
-                        </Button.Root>
+                        <Link href={"/tutorial"}>
+                            <Button.Root onClick={onNext} disabled={!ready}>
+                                Next
+                            </Button.Root>
+                        </Link>
                     </div>
                 </Card.Body>
             </Card.Root>
