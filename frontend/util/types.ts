@@ -31,3 +31,15 @@ export const Game: Record<
     scramble: { order: 2, name: "Word Fix" },
     audio_mismatch: { order: 3, name: "Listen and Read" },
 }
+
+export type EventType = {
+    session_id: string
+    round_id: string
+    task_component: GameType
+    selected: string
+    correct: string
+    is_correct: boolean
+    latency_ms: number
+    attempt_number: number
+    extra?: Record<string, unknown>
+}

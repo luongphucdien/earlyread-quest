@@ -3,11 +3,12 @@
 import { RadioGroup } from "@/components"
 import { ChallengesType, GameType } from "@/util/types"
 import Image from "next/image"
-import { createContext, useContext } from "react"
+import { createContext, useContext, useEffect } from "react"
 
 interface GameContextProps {
     onAudioReplay: () => void
     onSelectOption: (option: string) => void
+    onGameSwitch: () => void
     game: GameType
     gameInfo: ChallengesType | null
     options: string[]
@@ -15,14 +16,25 @@ interface GameContextProps {
 export const GameContext = createContext<GameContextProps>({
     onAudioReplay: () => {},
     onSelectOption: () => {},
+    onGameSwitch: () => {},
     game: "image_color",
     gameInfo: null,
     options: [],
 })
 
 export const GameBody = () => {
-    const { game, gameInfo, onAudioReplay, options, onSelectOption } =
-        useContext(GameContext)
+    const {
+        game,
+        onGameSwitch,
+        gameInfo,
+        onAudioReplay,
+        options,
+        onSelectOption,
+    } = useContext(GameContext)
+
+    useEffect(() => {
+        onGameSwitch()
+    }, [game])
 
     return (
         <>
