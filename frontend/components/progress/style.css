@@ -1,0 +1,21 @@
+[data-scope="progress"] {
+    &[data-part="root"] {
+        display: flex;
+        gap: calc(var(--spacing) * 3);
+    }
+
+    &[data-part="segment"] {
+        height: calc(var(--spacing) * 3);
+        width: calc(var(--spacing) * 12);
+        border-radius: calc(infinity * 1px);
+        background-color: var(--color-slate-200);
+
+        &:is([data-active]) {
+            background-color: var(--primary);
+        }
+
+        &:is([data-completed]) {
+            background-color: var(--success);
+        }
+    }
+}

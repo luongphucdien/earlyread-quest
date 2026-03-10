@@ -18,9 +18,9 @@ export default function Page() {
 
     useEffect(() => {
         if (ids.session_id !== "" && ids.first_round_id !== "") {
-            router.push(
-                `/start/${ids.session_id}?first_round_id=${ids.first_round_id}`
-            )
+            window.localStorage.setItem("session_id", ids.session_id)
+            window.localStorage.setItem("first_round_id", ids.first_round_id)
+            router.push("/start")
         }
     }, [ids, router])
 
