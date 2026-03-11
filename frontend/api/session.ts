@@ -32,7 +32,7 @@ export const getIds = async (ageBand: string) => {
     }
 }
 
-export const finish = async (session_id: string) => {
+export const getReport = async (session_id: string) => {
     try {
         const response = await window.fetch(
             `${API_URL}/sessions/${session_id}/finish`,

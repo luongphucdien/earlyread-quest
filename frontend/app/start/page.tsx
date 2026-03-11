@@ -2,9 +2,10 @@
 
 import { logEvent } from "@/api/events"
 import { getRound } from "@/api/rounds"
-import { finish } from "@/api/session"
+import { getReport } from "@/api/session"
 import { Button, Card, Progress } from "@/components"
 import { Game, GameType, RoundType, SummaryType } from "@/util/types"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { GameBody, GameContext } from "./(game)/game-body"
 
@@ -14,12 +15,14 @@ export default function Page() {
     const [audioReplayCount, setAudioReplayCount] = useState(0)
     const [option, setOption] = useState<string>()
     const [isEndRound, setIsEndRound] = useState(false)
-    const [isFinished, setIsFinished] = useState(false)
+    const [isFinalRound, setIsFinalRound] = useState(false)
     const [startTime, setStartTime] = useState(0)
     const [isLogging, setIsLogging] = useState(false)
     const [finishSummary, setFinishSummary] = useState<SummaryType>()
 
     const session_id = useRef<string>("")
+
+    const router = useRouter()
 
     useEffect(() => {
         const _session_id = window.localStorage.getItem("session_id")
@@ -41,8 +44,13 @@ export default function Page() {
         }
     }, [])
 
+    useEffect(() => {
+        if (isEndRound && isFinalRound)
+            getReport(session_id.current).then((res) => setFinishSummary(res))
+    }, [isEndRound, isFinalRound])
+
     const onGameSwitch = () => {
-        setIsFinished(round?.round_number === round?.total_rounds)
+        setIsFinalRound(round?.round_number === round?.total_rounds)
         setStartTime(Date.now())
         setOption(undefined)
     }
@@ -69,30 +77,24 @@ export default function Page() {
         }
 
         if (round) {
-            if (round.round_number === round.total_rounds) {
-                await finish(session_id.current).then((res) =>
-                    setFinishSummary(res)
-                )
-            } else {
-                setIsLogging(true)
-                await logEvent({
-                    session_id: window.localStorage.getItem("session_id")!,
-                    round_id: round.round_id,
-                    task_component: currentGame,
-                    selected: option!,
-                    correct: round.challenges[currentGame].correct_answer,
-                    is_correct:
-                        option === round.challenges[currentGame].correct_answer,
-                    latency_ms: Date.now() - startTime,
-                    attempt_number: 1,
-                    extra:
-                        currentGame === "audio_mismatch"
-                            ? {
-                                  audio_replay_count: audioReplayCount,
-                              }
-                            : undefined,
-                }).then(() => setIsLogging(false))
-            }
+            setIsLogging(true)
+            await logEvent({
+                session_id: window.localStorage.getItem("session_id")!,
+                round_id: round.round_id,
+                task_component: currentGame,
+                selected: option!,
+                correct: round.challenges[currentGame].correct_answer,
+                is_correct:
+                    option === round.challenges[currentGame].correct_answer,
+                latency_ms: Date.now() - startTime,
+                attempt_number: 1,
+                extra:
+                    currentGame === "audio_mismatch"
+                        ? {
+                              audio_replay_count: audioReplayCount,
+                          }
+                        : undefined,
+            }).then(() => setIsLogging(false))
         }
     }
 
@@ -107,7 +109,7 @@ export default function Page() {
                 })
                 .catch((error) => console.error(error))
         } else {
-            // navigate to reportconda
+            router.push("/report")
         }
     }
 
@@ -124,29 +126,31 @@ export default function Page() {
                     <Card.Title>You Did Great!</Card.Title>
                     <Card.Subtitle>Great focus and effort!</Card.Subtitle>
                     <Card.Body className="space-y-6">
-                        {isFinished && finishSummary ? (
-                            <div className="rounded-2xl bg-(--surface-muted) p-5">
-                                <p className="text-xl font-black text-(--success)">
-                                    {getMedal(finishSummary.overall_score)}
-                                </p>
-                                <p className="mt-2 text-slate-700">
-                                    {finishSummary.summary ??
-                                        "You were focused and thoughtful. Keep reading and playing word games!"}
-                                </p>
-                            </div>
+                        {isFinalRound ? (
+                            <>
+                                {finishSummary && (
+                                    <div className="rounded-2xl bg-(--surface-muted) p-5">
+                                        <p className="text-xl font-black text-(--success)">
+                                            {getMedal(
+                                                finishSummary.overall_score
+                                            )}
+                                        </p>
+                                        <p className="mt-2 text-slate-700">
+                                            {finishSummary.summary ??
+                                                "You were focused and thoughtful. Keep reading and playing word games!"}
+                                        </p>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <>
                                 <p className="rounded-2xl bg-(--surface-muted) p-4 text-center text-xl font-bold">
-                                    {round!.round_number < round!.total_rounds
-                                        ? "Get ready for next round!"
-                                        : "Good job! You finished them all!"}
+                                    Get ready for next round!
                                 </p>
                             </>
                         )}
                         <Button.Root onClick={onNextRound}>
-                            {round!.round_number < round!.total_rounds
-                                ? "Next Round"
-                                : "Show Report"}
+                            {!isFinalRound ? "Next Round" : "Show Report"}
                         </Button.Root>
                     </Card.Body>
                 </>
