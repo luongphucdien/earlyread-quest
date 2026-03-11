@@ -43,3 +43,20 @@ export type EventType = {
     attempt_number: number
     extra?: Record<string, unknown>
 }
+
+type SubscoreItemType = {
+    accuracy: number
+    avgResponseTimeMs: number
+}
+
+type SubscoreType = Record<GameType, SubscoreItemType>
+
+type RiskLevel = "low" | "medium" | "high"
+
+export type SummaryType = {
+    subscores: SubscoreType
+    overall_score: number
+    risk_level: RiskLevel
+    summary: string
+    next_round_id: null
+}

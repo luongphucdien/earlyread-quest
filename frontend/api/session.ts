@@ -1,3 +1,5 @@
+import { SummaryType } from "@/util/types"
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 export const getIds = async (ageBand: string) => {
     const body = JSON.stringify({
@@ -27,5 +29,25 @@ export const getIds = async (ageBand: string) => {
             console.error("Unknown error")
             return { error: "Unknown", message: "None" }
         }
+    }
+}
+
+export const finish = async (session_id: string) => {
+    try {
+        const response = await window.fetch(
+            `${API_URL}/sessions/${session_id}/finish`,
+            {
+                method: "POST",
+            }
+        )
+
+        if (!response.ok) {
+            throw new Error(`Response Status: ${response.status}`)
+        }
+
+        const summary: SummaryType = await response.json()
+        return summary
+    } catch (error) {
+        console.error(error)
     }
 }
