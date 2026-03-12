@@ -139,9 +139,9 @@ def _scramble_challenge(round_number: int, level: int) -> dict[str, Any]:
 
 def _audio_mismatch_challenge(round_number: int, level: int) -> dict[str, Any]:
     audio_url = (
-        "https://www.soundjay.com/nature/sounds/rain-01.mp3"
+        "https://cdn.pixabay.com/audio/2026/03/10/audio_feb4530766.mp3"
         if round_number == 1
-        else "https://www.soundjay.com/nature/sounds/rain-02.mp3"
+        else "https://cdn.pixabay.com/audio/2026/03/10/audio_feb4530766.mp3"
     )
     shown_text_by_level = ["Rain", "Rain", "Dog", "Thunderstorm"]
     correct_by_level = ["Yes", "Yes", "No", "No"]
