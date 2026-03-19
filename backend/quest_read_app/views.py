@@ -1,5 +1,6 @@
 import json
 from typing import Any
+import random
 
 from django.db.models import Avg, Count, Q
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
@@ -37,43 +38,41 @@ def _total_rounds_for_age(age_band: str) -> int:
 
 
 def _image_color_challenge(round_number: int, level: int) -> dict[str, Any]:
+    correct_ans_1 = "Yellow"
+    correct_ans_2 = 'Red'
+    color_options = ["Blue", 'Green', 'Purple', 'Orange', "Gold", 'Amber', "Mustard"]
+
+    random_options = random.sample(color_options, 3)
+
     if round_number == 1:
-        option_sets = [
-            ["Yellow", "Red", "Blue", "Green"],
-            ["Yellow", "Orange", "Green", "Purple"],
-            ["Yellow", "Gold", "Orange", "Green"],
-            ["Yellow", "Amber", "Mustard", "Orange"],
-        ]
         prompts = [
             "Tap the color of the banana.",
             "What color is the banana?",
             "Choose the best color label for the banana.",
             "Pick the most accurate color for the banana peel.",
         ]
+        random_options.append(correct_ans_1)
+        random.shuffle(random_options)
         return {
-            "prompt": prompts[level],
+            "prompt": random.choice(prompts),
             "image_url": "https://images.unsplash.com/photo-1603833665858-e61d17a86224",
-            "options": option_sets[level],
-            "correct_answer": "Yellow",
+            "options": random_options,
+            "correct_answer": correct_ans_1,
         }
 
-    option_sets = [
-        ["Green", "Red", "Blue", "Black"],
-        ["Green", "Yellow", "Red", "Purple"],
-        ["Green", "Lime", "Yellow", "Brown"],
-        ["Green", "Olive", "Teal", "Brown"],
-    ]
     prompts = [
         "Tap the color of the apple.",
         "What color is the apple shown?",
         "Choose the best color label for the apple.",
         "Pick the most accurate color for this apple.",
     ]
+    random_options.append(correct_ans_2)
+    random.shuffle(random_options)
     return {
         "prompt": prompts[level],
         "image_url": "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce",
-        "options": option_sets[level],
-        "correct_answer": "Green",
+        "options": random_options,
+        "correct_answer": correct_ans_2,
     }
 
 
@@ -120,7 +119,7 @@ def _scramble_challenge(round_number: int, level: int) -> dict[str, Any]:
             },
             {
                 "scrambled_word": "GNLAITER",
-                "options": ["TRIANGLE", "INTEGRAL", "RELATING", "TANGLIER"],
+                "options": ["TRIANGLE", "TRAINGLE", "TRIANGEL", "TRINAGEL"],
                 "correct_answer": "TRIANGLE",
             },
         ]
@@ -138,25 +137,33 @@ def _scramble_challenge(round_number: int, level: int) -> dict[str, Any]:
 
 
 def _audio_mismatch_challenge(round_number: int, level: int) -> dict[str, Any]:
-    audio_url = (
-        "https://cdn.pixabay.com/audio/2026/03/10/audio_feb4530766.mp3"
-        if round_number == 1
-        else "https://cdn.pixabay.com/audio/2026/03/10/audio_feb4530766.mp3"
-    )
-    shown_text_by_level = ["Rain", "Rain", "Dog", "Thunderstorm"]
-    correct_by_level = ["Yes", "Yes", "No", "No"]
-    prompt_by_level = [
+    audio_urls = {
+        "Rain": "https://cdn.pixabay.com/audio/2026/03/10/audio_feb4530766.mp3",
+        "Dog": "https://cdn.pixabay.com/audio/2025/10/12/audio_c89bb7f7f9.mp3",
+        "Bird": "https://cdn.pixabay.com/audio/2026/02/10/audio_004926ac57.mp3"
+    }
+    texts = list(audio_urls.keys())
+    # audio_url = (
+    #     "https://cdn.pixabay.com/audio/2026/03/10/audio_feb4530766.mp3"
+    #     if round_number == 1
+    #     else "https://cdn.pixabay.com/audio/2026/03/10/audio_feb4530766.mp3"
+    # )
+    # shown_text_by_level = ["Rain", "Rain", "Dog", "Thunderstorm"]
+    # correct_by_level = ["Yes", "Yes", "No", "No"]
+    prompts = [
         "Listen to the sound. Does it match the word?",
         "Does the audio match the shown text?",
         "Listen carefully. Does the audio match the shown text?",
         "Compare the audio and text. Do they match exactly?",
     ]
+    audio = random.choice(texts)
+    text = random.choice(texts)
     return {
-        "prompt": prompt_by_level[level],
-        "audio_url": audio_url,
-        "shown_text": shown_text_by_level[level],
+        "prompt": random.choice(prompts),
+        "audio_url": audio_urls[audio],
+        "shown_text": text,
         "options": ["Yes", "No"],
-        "correct_answer": correct_by_level[level],
+        "correct_answer": "Yes" if audio == text else "No" ,
     }
 
 

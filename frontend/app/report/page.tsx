@@ -1,8 +1,9 @@
 "use client"
 
 import { getReport } from "@/api/session"
-import { Card } from "@/components"
+import { Button, Card } from "@/components"
 import { Game, GameType, SummaryType } from "@/util/types"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
 export default function Page() {
@@ -22,6 +23,8 @@ export default function Page() {
                 console.error(error)
             })
     }, [])
+
+    const router = useRouter()
 
     return (
         <Card.Root>
@@ -94,6 +97,10 @@ export default function Page() {
                         is not a clinical diagnosis. Consult a qualified reading
                         specialist for formal assessment.
                     </p>
+
+                    <Button.Root onClick={() => router.push("/")}>
+                        Return to Home
+                    </Button.Root>
                 </div>
             </Card.Body>
         </Card.Root>
