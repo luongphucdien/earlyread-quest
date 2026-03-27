@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Event, Round, Session
 
 AGE_BANDS = ("4-5", "6-7", "8-9", "10-11")
+TASK_COMPONENTS = tuple(choice for choice, _label in Event.TASK_CHOICES)
 
 
 def _read_json_body(request: HttpRequest) -> dict[str, Any]:
@@ -22,9 +23,137 @@ def _read_json_body(request: HttpRequest) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def _bad_request(detail: str, **extra: Any) -> JsonResponse:
+    payload = {"detail": detail}
+    payload.update(extra)
+    return JsonResponse(payload, status=400)
+
+
 def _normalize_age_band(age_band: Any) -> str:
     normalized = str(age_band or "").strip()
-    return normalized if normalized in AGE_BANDS else "6-7"
+    return normalized
+
+
+def _validate_age_band(age_band: Any) -> str | None:
+    normalized = _normalize_age_band(age_band)
+    return normalized if normalized in AGE_BANDS else None
+
+
+def _parse_non_negative_int(value: Any, field_name: str) -> int:
+    try:
+        parsed_value = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be an integer") from None
+
+    if parsed_value < 0:
+        raise ValueError(f"{field_name} must be non-negative")
+
+    return parsed_value
+
+
+def _parse_positive_int(value: Any, field_name: str) -> int:
+    parsed_value = _parse_non_negative_int(value, field_name)
+    if parsed_value < 1:
+        raise ValueError(f"{field_name} must be greater than or equal to 1")
+    return parsed_value
+
+
+def _validate_event_payload(
+    payload: dict[str, Any], round_obj: Round
+) -> tuple[dict[str, Any] | None, JsonResponse | None]:
+    task_component = str(payload.get("task_component", "")).strip()
+    if task_component not in TASK_COMPONENTS:
+        return None, _bad_request("task_component is invalid")
+
+    if not isinstance(payload.get("is_correct"), bool):
+        return None, _bad_request("is_correct must be a boolean")
+
+    selected = str(payload.get("selected", "")).strip()
+    submitted_correct = str(payload.get("correct", "")).strip()
+    if not selected:
+        return None, _bad_request("selected must be a non-empty string")
+    if not submitted_correct:
+        return None, _bad_request("correct must be a non-empty string")
+
+    try:
+        latency_ms = _parse_non_negative_int(payload.get("latency_ms"), "latency_ms")
+        attempt_number = _parse_positive_int(
+            payload.get("attempt_number"), "attempt_number"
+        )
+    except ValueError as exc:
+        return None, _bad_request(str(exc))
+
+    content = round_obj.content if isinstance(round_obj.content, dict) else {}
+    challenges = content.get("challenges", {})
+    challenge = challenges.get(task_component)
+    if not isinstance(challenge, dict):
+        return None, _bad_request("task_component is not available in this round")
+
+    options = challenge.get("options", [])
+    if selected not in options:
+        return None, _bad_request("selected must match one of the available options")
+
+    expected_correct = str(challenge.get("correct_answer", "")).strip()
+    derived_is_correct = selected == expected_correct
+    if submitted_correct != expected_correct:
+        return None, _bad_request("correct does not match the round configuration")
+    if payload.get("is_correct") is not derived_is_correct:
+        return None, _bad_request(
+            "is_correct does not match the submitted answer and round configuration"
+        )
+
+    if Event.objects.filter(round=round_obj, task_component=task_component).exists():
+        return None, _bad_request("This mini-challenge has already been submitted")
+
+    extra = payload.get("extra")
+    if extra is not None and not isinstance(extra, dict):
+        return None, _bad_request("extra must be an object when provided")
+
+    return (
+        {
+            "task_component": task_component,
+            "selected": selected,
+            "correct": expected_correct,
+            "is_correct": derived_is_correct,
+            "latency_ms": latency_ms,
+            "attempt_number": attempt_number,
+            "extra": extra or {},
+        },
+        None,
+    )
+
+
+def _incomplete_rounds_for_session(session: Session) -> list[dict[str, Any]]:
+    expected_components = set(TASK_COMPONENTS)
+    grouped_events = (
+        Event.objects.filter(session=session)
+        .values("round_id")
+        .annotate(components_seen=Count("task_component", distinct=True))
+    )
+    counts_by_round = {
+        str(row["round_id"]): row["components_seen"] for row in grouped_events
+    }
+
+    incomplete_rounds: list[dict[str, Any]] = []
+    for round_obj in session.rounds.all():
+        seen_components = set(
+            Event.objects.filter(round=round_obj).values_list(
+                "task_component", flat=True
+            )
+        )
+        missing_components = sorted(expected_components - seen_components)
+        if missing_components:
+            incomplete_rounds.append(
+                {
+                    "round_id": str(round_obj.id),
+                    "round_number": round_obj.round_number,
+                    "completed_components": counts_by_round.get(str(round_obj.id), 0),
+                    "required_components": len(expected_components),
+                    "missing_components": missing_components,
+                }
+            )
+
+    return incomplete_rounds
 
 
 def _difficulty_level(age_band: str, round_number: int) -> int:
@@ -184,7 +313,12 @@ def start_session(request: HttpRequest):
         return HttpResponseNotAllowed(["POST"])
 
     payload = _read_json_body(request)
-    age_band = _normalize_age_band(payload.get("age_band", "6-7"))
+    age_band = _validate_age_band(payload.get("age_band"))
+    if age_band is None:
+        return _bad_request(
+            "age_band must be one of: 4-5, 6-7, 8-9, 10-11"
+        )
+
     total_rounds = _total_rounds_for_age(age_band)
 
     session = Session.objects.create(age_band=age_band)
@@ -251,9 +385,7 @@ def log_event(request: HttpRequest):
     ]
     missing_fields = [field for field in required_fields if field not in payload]
     if missing_fields:
-        return JsonResponse(
-            {"detail": f"Missing fields: {', '.join(missing_fields)}"}, status=400
-        )
+        return _bad_request(f"Missing fields: {', '.join(missing_fields)}")
 
     try:
         session = Session.objects.get(id=payload["session_id"])
@@ -261,16 +393,20 @@ def log_event(request: HttpRequest):
     except (Session.DoesNotExist, Round.DoesNotExist):
         return JsonResponse({"detail": "Session or round not found"}, status=404)
 
+    validated_payload, error_response = _validate_event_payload(payload, round_obj)
+    if error_response is not None:
+        return error_response
+
     Event.objects.create(
         session=session,
         round=round_obj,
-        task_component=str(payload["task_component"]),
-        selected=str(payload["selected"]),
-        correct=str(payload["correct"]),
-        is_correct=bool(payload["is_correct"]),
-        latency_ms=max(0, int(payload["latency_ms"])),
-        attempt_number=max(1, int(payload["attempt_number"])),
-        extra=payload.get("extra") if isinstance(payload.get("extra"), dict) else {},
+        task_component=validated_payload["task_component"],
+        selected=validated_payload["selected"],
+        correct=validated_payload["correct"],
+        is_correct=validated_payload["is_correct"],
+        latency_ms=validated_payload["latency_ms"],
+        attempt_number=validated_payload["attempt_number"],
+        extra=validated_payload["extra"],
     )
 
     return JsonResponse({"ok": True}, status=201)
@@ -285,6 +421,13 @@ def finish_session(request: HttpRequest, session_id: str):
         session = Session.objects.get(id=session_id)
     except Session.DoesNotExist:
         return JsonResponse({"detail": "Session not found"}, status=404)
+
+    incomplete_rounds = _incomplete_rounds_for_session(session)
+    if incomplete_rounds:
+        return _bad_request(
+            "Cannot finish session before all three mini-challenges are completed",
+            incomplete_rounds=incomplete_rounds,
+        )
 
     grouped = (
         Event.objects.filter(session=session)

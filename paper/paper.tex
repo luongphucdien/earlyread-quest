@@ -1,0 +1,406 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{array}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Game-Based Early Dyslexia Risk Screening Application}
+
+\author{
+\IEEEauthorblockN{Dylan Luong, Jehosua Joya, Krishna Aryal, Nirusha Munikar}
+\IEEEauthorblockA{\textit{COSC-5506-W03 - Advanced Software Engineering}\\
+Algoma University\\
+Ontario, Canada\\
+email1@algomau.ca, jjoyavenegas@algomau.ca, email3@algomau.ca, email4@algomau.ca}
+}
+
+\maketitle
+
+\begin{abstract}
+Developmental dyslexia is a neurodevelopmental reading disorder associated with persistent difficulties in accurate and/or fluent word recognition, spelling, and decoding. Early identification is important because reading difficulties tend to persist and timely intervention is associated with improved academic outcomes. Research consistently shows that early dyslexia risk is better identified through multiple indicators, such as phonological processing, naming speed, and decoding-related tasks, rather than through a single isolated measure. This paper presents \textit{Game-Based Early Dyslexia Risk Screening Application}, a web-based system designed for children aged 6--9 that integrates three evidence-informed mini-challenges into each activity round: a visual selection challenge, a word-fix challenge involving letter-order discrimination, and an audio-text mismatch challenge. The system was implemented using React for the frontend, Django for the backend, and SQLite for data storage. Development followed a Scrum-based weekly sprint process and was monitored using Jira. Functional testing, input validation testing, and performance testing were applied to evaluate system correctness, robustness, and responsiveness. The resulting prototype demonstrates how software engineering methods can support the design of an evidence-informed early risk screener while explicitly avoiding the claim of medical diagnosis.
+\end{abstract}
+
+\begin{IEEEkeywords}
+dyslexia, early screening, educational technology, web application, software engineering, phonological processing, rapid naming
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Developmental dyslexia is widely described as a neurodevelopmental disorder that affects reading accuracy, reading fluency, spelling, and decoding ability. In contemporary research, dyslexia is not treated as a general intelligence problem, but rather as a specific difficulty in learning to read that is often associated with weaknesses in phonological processing and related reading mechanisms \cite{lyon2003,snowling2000,vellutino2004}. The current scientific view also emphasizes that dyslexia is multifactorial, which means that no single behavioral sign is sufficient to identify all cases with confidence.
+
+The importance of early identification lies in the fact that untreated reading difficulties may negatively affect academic performance, confidence, and later educational participation. Research on early screening suggests that better predictions are obtained when several indicators are considered together, especially close to school entry and in the first years of formal reading instruction \cite{catts2015,puolakanaho2007}. For this reason, digital screening systems should not be designed around a single isolated test, but around a combination of reading-related tasks that capture complementary evidence.
+
+This project presents \textit{Game-Based Early Dyslexia Risk Screening Application}, a web-based system intended to support early dyslexia risk screening in children aged 6--9. The system translates research-informed risk indicators into short, child-friendly, game-based activities. Rather than attempting to diagnose dyslexia, the application is designed as an early risk screener that may help parents and educators recognize patterns that justify further professional evaluation. The main contribution of this work is the design, implementation, and testing of a software system that combines scientific grounding with practical software engineering methods.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 1\\
+Conceptual overview of scientific dyslexia risk indicators used in the system
+}}
+\caption{Conceptual overview of the evidence-informed markers that guided the task design. Replace this placeholder with your final figure.}
+\label{fig:conceptual_overview}
+\end{figure}
+
+\section{Background and Related Work}
+
+\subsection{Scientific understanding of dyslexia}
+
+Dyslexia has been extensively studied in educational psychology, cognitive science, and developmental neuroscience. A widely cited definition describes it as a specific learning disorder with a neurobiological origin, characterized by difficulties with accurate and/or fluent word recognition and by poor spelling and decoding abilities \cite{lyon2003}. These reading difficulties are often unexpected in relation to other cognitive abilities and educational exposure.
+
+A long tradition of research has shown that phonological deficits are central in many cases of dyslexia, particularly difficulties in representing, accessing, and manipulating speech sounds \cite{snowling2000,vellutino2004}. At the same time, more recent work supports a multiple-deficit perspective, according to which dyslexia risk emerges from the interaction of several cognitive and linguistic factors rather than a single core deficit \cite{pennington2006}.
+
+\subsection{Evidence-based early markers of dyslexia risk}
+
+Among the strongest early indicators of dyslexia risk are phonological awareness, letter-sound knowledge, rapid automatized naming (RAN), and decoding-related skills \cite{catts2015,puolakanaho2007}. Phonological awareness reflects the child's ability to recognize and manipulate the sound structure of language, while RAN captures the speed with which familiar visual stimuli can be named. Both have repeatedly been associated with later reading performance.
+
+Decoding-related skills are also highly relevant, particularly tasks that require children to discriminate or reconstruct letter sequences. Although our prototype does not claim to measure clinical pseudoword decoding directly, the orthographic discrimination task in the application was inspired by the importance of letter-order sensitivity and word-form processing in early reading development.
+
+A further relevant line of research concerns the integration of visual and auditory language information. Studies on letter-speech sound coupling suggest that struggling readers often have difficulty efficiently connecting visual symbols with spoken language information \cite{blau2010}. This supports the inclusion of an audio-text mismatch challenge in our system, where children compare what they hear to what they see.
+
+Visual attention has also been discussed in the literature as a potential complementary factor in reading development, although this evidence is less consistent than the evidence for phonological factors \cite{vidyasagar2010}. For this reason, the visual/color-based task in our application is treated as supportive and complementary rather than as a primary dyslexia marker.
+
+\subsection{Implications for the proposed system}
+
+The literature suggests that early screening should rely on multiple tasks and should be interpreted cautiously. Accordingly, the proposed application was designed as an \textit{evidence-informed risk screener} rather than a diagnostic system. The selected game mechanics were chosen to reflect reading-related processes associated with dyslexia risk while also remaining approachable and engaging for children in the target age range.
+
+\begin{table}[htbp]
+\caption{Scientific basis of the proposed system}
+\label{tab:literature_mapping}
+\centering
+\begin{tabular}{|p{2.0cm}|p{2.3cm}|p{2.7cm}|}
+\hline
+\textbf{Marker} & \textbf{Evidence in literature} & \textbf{Application feature} \\
+\hline
+Phonological processing & Strong evidence in dyslexia research & Audio-text comparison task \\
+\hline
+Orthographic discrimination & Important for word recognition and decoding & Word-fix / letter-order task \\
+\hline
+Rapid response behavior & Useful as a screening-related behavioral signal & Response time logging \\
+\hline
+Visual attention support & Complementary role in some studies & Visual selection challenge \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Project Vision}
+
+The vision of this project is to provide an accessible, child-friendly, and evidence-informed digital tool that supports early recognition of dyslexia-related risk indicators in children aged 6--9. The intended users are children, parents, and educators who need an engaging way to observe reading-related behaviors associated with dyslexia risk. Unlike traditional paper-based screening methods, the proposed system presents short mini-games that combine scientifically motivated task types with an approachable web interface. Its intended value is early screening and awareness, not diagnosis.
+
+\section{Project Development Method and Monitoring}
+
+The project was developed using a lightweight Scrum process with weekly sprints. This method was selected because the team worked in an academic setting with weekly deliverables rather than daily in-person meetings. Scrum provided a structured way to define sprint goals, organize backlog items, assign responsibilities, and review progress incrementally.
+
+Jira was used as the project monitoring tool. It was employed to manage epics, user stories, subtasks, and sprint progress. The project board included major epics such as system setup, activity engine design, scoring and reporting, testing, and deployment preparation. Because the team did not meet daily, asynchronous progress updates in Jira replaced traditional daily stand-up meetings. This approach preserved accountability and allowed sprint-by-sprint visibility of project status.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 2\\
+Jira board screenshot showing sprint planning and task progress
+}}
+\caption{Jira board used to monitor the development process. Replace this placeholder with the actual screenshot.}
+\label{fig:jira}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 3\\
+Project timeline / Gantt chart / sprint schedule
+}}
+\caption{Weekly sprint timeline of the project. Replace this placeholder with the final project timeline image.}
+\label{fig:gantt}
+\end{figure}
+
+\section{Software--Hardware Components, Networking Components, and Features}
+
+The software architecture of the system consists of three main parts: a React-based frontend, a Django backend, and an SQLite database. The frontend is responsible for rendering the user interface and managing the child interaction flow. The backend handles session management, activity retrieval, event logging, scoring logic, and summary generation. The SQLite database stores anonymized session data, recorded events, and result summaries.
+
+From a hardware perspective, the system is designed to run on common devices such as laptops and tablets with audio output. The application does not require specialized hardware. A microphone may be incorporated in future versions if voice-based tasks are extended, but it is not required in the current prototype.
+
+The networking model is based on standard client-server communication using RESTful APIs over HTTP/HTTPS. The frontend sends requests to the backend to create sessions, retrieve activity data, submit answers, and request a final report. This makes the prototype practical to deploy and test in a classroom or demo setting.
+
+The main system features include a welcome screen, an instructions screen, a reusable 3-in-1 activity round, a child summary screen, and a parent/educator report. Each round includes three mini-challenges: a visual selection task, a word-fix task, and an audio-text mismatch task. The system records accuracy and response time for each mini-activity and uses these data to generate a final risk-oriented summary.
+
+\section{Software Architecture and System Design}
+
+\subsection{Architectural style}
+
+A layered web architecture was selected for this project. The presentation layer is implemented in React, the application logic layer in Django, and the persistence layer in SQLite. This architectural choice supports modularity, maintainability, and testability, all of which are especially important in a student software engineering project.
+
+\subsection{Centralized or distributed architecture}
+
+The current system is best described as a centralized architecture. Although multiple client devices can access the application, the main logic for session handling, validation, event processing, and report generation is located in a single backend service connected to a single database. This centralization simplifies scoring consistency, data integrity, and system control.
+
+\subsection{Best UML choice for the software architecture}
+
+The most suitable UML diagram for this project is a \textit{Component Diagram}, because it clearly represents the major software modules and their relationships. A \textit{Sequence Diagram} is also useful to illustrate the runtime behavior of one activity round, including session start, round retrieval, answer submission, and report generation.
+
+\subsection{Architectural description}
+
+The user interacts with the React frontend, which communicates with the Django backend through API endpoints. The backend retrieves activity definitions, validates input, stores events in SQLite, and computes a session summary. The system was designed around reusable activity templates so that multiple rounds can be generated from a shared data structure.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 4\\
+High-level software architecture diagram
+}}
+\caption{High-level software architecture of the system. Replace this placeholder with your final architecture diagram.}
+\label{fig:architecture}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 5\\
+UML component diagram
+}}
+\caption{UML component diagram for the proposed system. Replace this placeholder with the final UML diagram.}
+\label{fig:uml_component}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 6\\
+UML sequence diagram for one activity round
+}}
+\caption{Sequence diagram showing the interaction flow during a round. Replace this placeholder with the final UML sequence diagram.}
+\label{fig:uml_sequence}
+\end{figure}
+
+\section{Project Risks and Product Risks}
+
+Project risks were identified through team discussions, sprint planning, and implementation reviews. The main project risks included limited development time, uneven technical familiarity among team members, integration challenges between frontend and backend, and the possibility of scope creep. These risks were mitigated through weekly sprint scoping, task breakdown in Jira, and early implementation of reusable components and APIs.
+
+Product risks were also considered. One key risk was that users might misinterpret the application as a diagnostic tool rather than a screening support system. This was addressed by explicitly presenting the application as a \textit{risk screening} tool only. Another product risk was insufficient scientific grounding, which was mitigated through literature-based task design. Privacy and ethical concerns were addressed by using anonymized data and avoiding storage of personally identifiable information. Finally, there was a usability risk related to overstimulating children with an interface that was too visually intense. To reduce this risk, the design was progressively simplified and adapted to maintain attention without excessive distraction.
+
+\begin{table}[htbp]
+\caption{Project and product risk summary}
+\label{tab:risk_table}
+\centering
+\begin{tabular}{|p{2.1cm}|p{2.2cm}|p{2.8cm}|}
+\hline
+\textbf{Risk Type} & \textbf{Risk} & \textbf{Mitigation} \\
+\hline
+Project & Limited time & Weekly sprint scoping and prioritization \\
+\hline
+Project & Integration issues & Early API and UI integration \\
+\hline
+Product & Misinterpreted as diagnosis & Explicit disclaimer and report wording \\
+\hline
+Product & Weak validity claims & Literature-informed task design \\
+\hline
+Product & Child distraction & Simplified child-focused interface \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{System Implementation}
+
+\subsection{Frontend implementation}
+
+The frontend was implemented as a React web application using reusable components. The child-facing interface was organized into five screens: Welcome, Instructions, Activity Round, Child Summary, and Parent/Educator Report. Large buttons, simplified wording, and calm visual design were used to improve interaction for young users.
+
+\subsection{Backend implementation}
+
+The backend was implemented using Django. Core endpoints were created for starting a session, retrieving round content, logging response events, and finishing a session with a summary result. Input validation was handled at the API level to reduce invalid data and improve reliability.
+
+\subsection{Activity implementation}
+
+Each activity round follows a reusable 3-in-1 structure. The first mini-challenge is a visual selection task, the second is a word-fix task involving letter-order discrimination, and the third is an audio-text mismatch task. This design allows the application to collect multiple reading-related behavioral signals within one consistent interaction pattern.
+
+\subsection{Reporting implementation}
+
+At the end of the session, the application generates two types of summary output. The child-facing summary presents only encouraging visual feedback, while the adult-facing report presents category-level accuracy and response-time summaries along with a high-level risk label.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 7\\
+Welcome screen
+}}
+\caption{Welcome screen of the system. Replace this placeholder with the real screenshot.}
+\label{fig:welcome}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 8\\
+Instructions screen
+}}
+\caption{Instructions screen shown before starting the activities. Replace this placeholder with the real screenshot.}
+\label{fig:instructions}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 9\\
+3-in-1 activity round
+}}
+\caption{Example of one 3-in-1 activity round. Replace this placeholder with the actual implementation screenshot.}
+\label{fig:round}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 10\\
+Child summary screen
+}}
+\caption{Child summary screen presented after the activity session. Replace this placeholder with the real screenshot.}
+\label{fig:child_summary}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 11\\
+Parent/Educator report screen
+}}
+\caption{Adult-facing report screen. Replace this placeholder with the real screenshot.}
+\label{fig:report}
+\end{figure}
+
+\section{Testing Procedures}
+
+\subsection{Rationale for the testing strategy}
+
+Testing was designed to verify the correctness, robustness, and responsiveness of the system. Because the application is intended for child users and depends on accurate event collection, it was important to validate both the correctness of the activity flow and the integrity of the submitted data. Three testing categories were emphasized: functional testing, input validation testing, and performance testing. These categories align well with software engineering practice because they address core behavior, data reliability, and system responsiveness.
+
+\subsection{Testing tools used}
+
+Functional testing for the backend was implemented using Django's built-in testing framework and test client. Frontend interaction and component behavior can additionally be tested using React Testing Library for component-level checks or Playwright for end-to-end browser flows. Input validation was enforced through backend request handling and frontend interaction constraints. Performance testing was prepared using Locust together with browser-side observation of interface responsiveness.
+
+\subsection{Functional testing procedure}
+
+Functional tests verified that the core user flow worked as intended: creating a session, loading a round, submitting responses for all three mini-challenges, moving to the next state, and generating the final report. The implemented backend suite also checked multi-round progression and confirmed that report generation reflected the submitted events and calculated scores.
+
+\subsection{Input validation testing procedure}
+
+Input validation tests focused on rejecting malformed or incomplete input. Implemented examples included invalid age bands, missing session identifiers, negative latency values, invalid task component labels, inconsistent correctness flags, and attempts to proceed without completing the three mini-challenges. This type of testing was important both for reliability and for protecting the database against incorrect or malicious inputs.
+
+\subsection{Performance testing procedure}
+
+Performance testing focused on measuring backend response time and frontend responsiveness under expected usage patterns. The prepared load scenario repeatedly created sessions, retrieved round content, submitted activity events, and generated reports in order to observe latency and stability under moderate concurrent access.
+
+\subsection{Analysis of test results}
+
+The implemented automated backend suite passed all current functional and input-validation cases during local execution, confirming the expected end-to-end activity flow and the rejection of invalid data. Functional testing confirmed the validity of the main interaction path. Input validation improved confidence in data integrity and reduced the likelihood of malformed session data entering the database. The lightweight architecture is suitable for prototype and classroom-scale demonstration use; however, broader real-world deployment would still require more extensive scalability, security, accessibility, and usability testing.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 12\\
+Testing environment / experiment setup
+}}
+\caption{Testing setup used to evaluate the system. Replace this placeholder with your real setup figure.}
+\label{fig:test_setup}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 13\\
+Functional testing result graph
+}}
+\caption{Functional testing results. Replace this placeholder with your actual graph.}
+\label{fig:functional_results}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 14\\
+Input validation test result graph
+}}
+\caption{Input validation testing results. Replace this placeholder with your actual graph.}
+\label{fig:validation_results}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\centering
+Placeholder for Figure 15\\
+Performance/load testing graph
+}}
+\caption{Performance testing results. Replace this placeholder with your actual graph.}
+\label{fig:performance_results}
+\end{figure}
+
+\section{Discussion}
+
+The main strength of the proposed system is that it translates scientific evidence into a practical software prototype that can support early awareness of dyslexia risk. Instead of depending on a single activity, the system combines several complementary interaction signals in each round. This is consistent with the research view that dyslexia risk should be approached through multiple indicators rather than oversimplified single-cause explanations.
+
+At the same time, the present work has important limitations. First, the application is not a clinically validated screener and should not be presented as a diagnostic instrument. Second, the scoring model is prototype-oriented and has not been calibrated against a large real-world dataset. Third, although the visual challenge is useful for interaction diversity and attention-related observation, the strongest scientific evidence continues to support phonological and decoding-related indicators over purely visual cues. Future work should therefore include pilot studies with real users, stronger empirical calibration, and comparisons with established educational screening frameworks.
+
+\section{Contribution of Group Members}
+
+The project was completed collaboratively, with responsibilities distributed across planning, implementation, testing, and documentation tasks. One team member focused primarily on sprint coordination and Jira monitoring. Another focused on backend development, API design, and data handling. Another led frontend implementation and activity screen development. Testing, integration, and report preparation were shared across the team. Although the team assigned primary roles, integration and debugging were collaborative tasks.
+
+\section{Conclusion}
+
+This paper presented \textit{Game-Based Early Dyslexia Risk Screening Application}, a web-based prototype intended to support early identification of dyslexia-related risk indicators in children aged 6--9. The project was grounded in scientific literature emphasizing the importance of early screening and the value of combining multiple reading-related indicators. Through a layered web architecture, reusable activity structure, and systematic testing procedures, the project demonstrated how software engineering methods can be used to build an evidence-informed educational screening tool. The resulting system should be interpreted as a practical early risk screener that supports awareness and structured observation rather than diagnosis. Future work should focus on empirical validation, refinement of the scoring model, and broader user testing.
+
+\section*{References}
+
+\begin{thebibliography}{00}
+
+\bibitem{lyon2003}
+G. R. Lyon, S. E. Shaywitz, and B. A. Shaywitz, ``A definition of dyslexia,'' \textit{Annals of Dyslexia}, vol. 53, no. 1, pp. 1--14, 2003.
+
+\bibitem{snowling2000}
+M. J. Snowling, \textit{Dyslexia}, 2nd ed. Oxford, U.K.: Blackwell, 2000.
+
+\bibitem{vellutino2004}
+F. R. Vellutino, J. M. Fletcher, M. J. Snowling, and D. M. Scanlon, ``Specific reading disability (dyslexia): What have we learned in the past four decades?,'' \textit{Journal of Child Psychology and Psychiatry}, vol. 45, no. 1, pp. 2--40, 2004.
+
+\bibitem{catts2015}
+H. W. Catts, D. C. Nielsen, M. S. Bridges, Y.-S. Liu, and D. E. Bontempo, ``Early identification of reading disabilities within an RTI framework,'' \textit{Journal of Learning Disabilities}, vol. 48, no. 3, pp. 281--297, 2015.
+
+\bibitem{puolakanaho2007}
+A. Puolakanaho \textit{et al.}, ``Very early phonological and language skills: Estimating individual risk of reading disability,'' \textit{Journal of Child Psychology and Psychiatry}, vol. 48, no. 9, pp. 923--931, 2007.
+
+\bibitem{wolf1999}
+M. Wolf and P. G. Bowers, ``The double-deficit hypothesis for the developmental dyslexias,'' \textit{Journal of Educational Psychology}, vol. 91, no. 3, pp. 415--438, 1999.
+
+\bibitem{pennington2006}
+B. F. Pennington, ``From single to multiple deficit models of developmental disorders,'' \textit{Cognition}, vol. 101, no. 2, pp. 385--413, 2006.
+
+\bibitem{blau2010}
+V. Blau, J. Reithler, M. van Atteveldt, R. Seitz, R. Gerretsen, H. Goebel, and L. Blomert, ``Deviant processing of letters and speech sounds as proximate cause of reading failure: A functional magnetic resonance imaging study of dyslexic children,'' \textit{Brain}, vol. 133, no. 3, pp. 868--879, 2010.
+
+\bibitem{vidyasagar2010}
+T. R. Vidyasagar and K. Pammer, ``Dyslexia: A deficit in visuo-spatial attention, not in phonological processing,'' \textit{Trends in Cognitive Sciences}, vol. 14, no. 2, pp. 57--63, 2010.
+
+\end{thebibliography}
+
+\end{document}
